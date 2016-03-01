@@ -67,13 +67,11 @@ class CreateLoadBalancer(neutronV20.CreateCommand):
             help=_('Load balancer VIP subnet.'))
 
     def args2body(self, parsed_args):
-        _subnet_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'subnet', parsed_args.vip_subnet)
+        _subnet_id = self.find_resourceid(parsed_args.vip_subnet, 'subnet')
         body = {'vip_subnet_id': _subnet_id,
                 'admin_state_up': parsed_args.admin_state}
         if parsed_args.flavor:
-            _flavor_id = neutronV20.find_resourceid_by_name_or_id(
-                self.get_client(), 'flavor', parsed_args.flavor)
+            _flavor_id = self.find_resourceid(parsed_args.flavor, 'flavor')
             body['flavor_id'] = _flavor_id
 
         neutronV20.update_dict(parsed_args, body,
@@ -105,8 +103,7 @@ class RetrieveLoadBalancerStats(neutronV20.ShowCommand):
         self.log.debug('run(%s)' % parsed_args)
         neutron_client = self.get_client()
         neutron_client.format = parsed_args.request_format
-        loadbalancer_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'loadbalancer', parsed_args.id)
+        loadbalancer_id = self.find_resourceid(parsed_args.id, 'loadbalancer')
         params = {}
         if parsed_args.fields:
             params = {'fields': parsed_args.fields}
@@ -150,8 +147,7 @@ class RetrieveLoadBalancerStatus(neutronV20.NeutronCommand):
     def take_action(self, parsed_args):
         self.log.debug('run(%s)' % parsed_args)
         neutron_client = self.get_client()
-        lb_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, self.resource, parsed_args.loadbalancer)
+        lb_id = self.find_resourceid(parsed_args.loadbalancer)
         params = {}
         data = neutron_client.retrieve_loadbalancer_status(lb_id, **params)
         res = data['statuses']

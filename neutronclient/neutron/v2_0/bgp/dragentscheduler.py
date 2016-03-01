@@ -18,7 +18,6 @@ from __future__ import print_function
 
 from neutronclient._i18n import _
 from neutronclient.neutron import v2_0 as neutronV20
-from neutronclient.neutron.v2_0.bgp import speaker as bgp_speaker
 
 
 def add_common_args(parser):
@@ -40,8 +39,8 @@ class AddBGPSpeakerToDRAgent(neutronV20.NeutronCommand):
 
     def take_action(self, parsed_args):
         neutron_client = self.get_client()
-        _speaker_id = bgp_speaker.get_bgp_speaker_id(neutron_client,
-                                                     parsed_args.bgp_speaker)
+        _speaker_id = self.find_resourceid(parsed_args.bgp_speaker,
+                                           'bgp_speaker')
         neutron_client.add_bgp_speaker_to_dragent(
             parsed_args.dragent_id, {'bgp_speaker_id': _speaker_id})
         print(_('Associated BGP speaker %s to the Dynamic Routing agent.')
@@ -59,8 +58,8 @@ class RemoveBGPSpeakerFromDRAgent(neutronV20.NeutronCommand):
 
     def take_action(self, parsed_args):
         neutron_client = self.get_client()
-        _speaker_id = bgp_speaker.get_bgp_speaker_id(neutron_client,
-                                                     parsed_args.bgp_speaker)
+        _speaker_id = self.find_resourceid(parsed_args.bgp_speaker,
+                                           'bgp_speaker')
         neutron_client.remove_bgp_speaker_from_dragent(parsed_args.dragent_id,
                                                        _speaker_id)
         print(_('Disassociated BGP speaker %s from the '
@@ -110,8 +109,8 @@ class ListDRAgentsHostingBGPSpeaker(neutronV20.ListCommand):
             agent['alive'] = ":-)" if agent['alive'] else 'xxx'
 
     def call_server(self, neutron_client, search_opts, parsed_args):
-        _speaker_id = bgp_speaker.get_bgp_speaker_id(neutron_client,
-                                                     parsed_args.bgp_speaker)
+        _speaker_id = self.find_resourceid(parsed_args.bgp_speaker,
+                                           'bgp_speaker')
         search_opts['bgp_speaker'] = _speaker_id
         data = neutron_client.list_dragents_hosting_bgp_speaker(**search_opts)
         return data

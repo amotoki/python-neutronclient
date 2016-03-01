@@ -61,8 +61,7 @@ class CreateEndpointGroup(neutronv20.CreateCommand):
         add_known_endpoint_group_arguments(parser)
 
     def subnet_name2id(self, endpoint):
-        return neutronv20.find_resourceid_by_name_or_id(self.get_client(),
-                                                        'subnet', endpoint)
+        return self.find_resourceid(endpoint, 'subnet')
 
     def args2body(self, parsed_args):
         if parsed_args.type == 'subnet':

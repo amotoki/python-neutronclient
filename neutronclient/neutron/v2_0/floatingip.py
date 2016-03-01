@@ -73,8 +73,8 @@ class CreateFloatingIP(neutronV20.CreateCommand):
         dns.add_dns_argument_create(parser, self.resource, 'name')
 
     def args2body(self, parsed_args):
-        _network_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'network', parsed_args.floating_network_id)
+        _network_id = self.find_resourceid(parsed_args.floating_network_id,
+                                           'network')
         body = {'floating_network_id': _network_id}
         neutronV20.update_dict(parsed_args, body,
                                ['port_id', 'tenant_id',

@@ -76,14 +76,12 @@ class IPsecSiteConnectionMixin(object):
             vpn_utils.validate_dpd_dict(parsed_args.dpd)
             body['dpd'] = parsed_args.dpd
         if parsed_args.local_ep_group:
-            _local_epg = neutronv20.find_resourceid_by_name_or_id(
-                self.get_client(), 'endpoint_group',
-                parsed_args.local_ep_group)
+            _local_epg = self.find_resourceid(parsed_args.local_ep_group,
+                                              'endpoint_group')
             body['local_ep_group_id'] = _local_epg
         if parsed_args.peer_ep_group:
-            _peer_epg = neutronv20.find_resourceid_by_name_or_id(
-                self.get_client(), 'endpoint_group',
-                parsed_args.peer_ep_group)
+            _peer_epg = self.find_resourceid(parsed_args.peer_ep_group,
+                                             'endpoint_group')
             body['peer_ep_group_id'] = _peer_epg
         return {self.resource: body}
 
@@ -147,15 +145,12 @@ class CreateIPsecSiteConnection(IPsecSiteConnectionMixin,
         super(CreateIPsecSiteConnection, self).add_known_arguments(parser)
 
     def args2body(self, parsed_args):
-        _vpnservice_id = neutronv20.find_resourceid_by_name_or_id(
-            self.get_client(), 'vpnservice',
-            parsed_args.vpnservice_id)
-        _ikepolicy_id = neutronv20.find_resourceid_by_name_or_id(
-            self.get_client(), 'ikepolicy',
-            parsed_args.ikepolicy_id)
-        _ipsecpolicy_id = neutronv20.find_resourceid_by_name_or_id(
-            self.get_client(), 'ipsecpolicy',
-            parsed_args.ipsecpolicy_id)
+        _vpnservice_id = self.find_resourceid(parsed_args.vpnservice_id,
+                                              'vpnservice')
+        _ikepolicy_id = self.find_resourceid(parsed_args.ikepolicy_id,
+                                             'ikepolicy')
+        _ipsecpolicy_id = self.find_resourceid(parsed_args.ipsecpolicy_id,
+                                               'ipsecpolicy')
         if int(parsed_args.mtu) < 68:
             message = _("Invalid MTU value: MTU must be "
                         "greater than or equal to 68")

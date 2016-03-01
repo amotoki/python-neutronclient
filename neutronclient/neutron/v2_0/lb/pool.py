@@ -80,8 +80,7 @@ class CreatePool(neutronV20.CreateCommand):
             help=_('Provider name of loadbalancer service.'))
 
     def args2body(self, parsed_args):
-        _subnet_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'subnet', parsed_args.subnet_id)
+        _subnet_id = self.find_resourceid(parsed_args.subnet_id, 'subnet')
         body = {'admin_state_up': parsed_args.admin_state,
                 'subnet_id': _subnet_id}
         neutronV20.update_dict(parsed_args, body,
@@ -110,8 +109,7 @@ class RetrievePoolStats(neutronV20.ShowCommand):
     def take_action(self, parsed_args):
         self.log.debug('run(%s)' % parsed_args)
         neutron_client = self.get_client()
-        pool_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'pool', parsed_args.id)
+        pool_id = self.find_resourceid(parsed_args.id)
         params = {}
         if parsed_args.fields:
             params = {'fields': parsed_args.fields}

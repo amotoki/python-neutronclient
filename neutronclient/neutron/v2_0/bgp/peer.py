@@ -21,12 +21,6 @@ from neutronclient.common import validators
 from neutronclient.neutron import v2_0 as neutronv20
 
 
-def get_bgp_peer_id(client, id_or_name):
-    return neutronv20.find_resourceid_by_name_or_id(client,
-                                                    'bgp_peer',
-                                                    id_or_name)
-
-
 def validate_peer_attributes(parsed_args):
     # Validate AS number
     validators.validate_int_range(parsed_args, 'remote_as',

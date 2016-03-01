@@ -99,9 +99,8 @@ class CreateSubnetPool(neutronV20.CreateCommand):
 
         # Parse and update for "address-scope" option
         if parsed_args.address_scope:
-            _addrscope_id = neutronV20.find_resourceid_by_name_or_id(
-                self.get_client(), 'address_scope',
-                parsed_args.address_scope)
+            _addrscope_id = self.find_resourceid(parsed_args.address_scope,
+                                                 'address_scope')
             body['address_scope_id'] = _addrscope_id
         return {'subnetpool': body}
 
@@ -141,8 +140,7 @@ class UpdateSubnetPool(neutronV20.UpdateCommand):
         if parsed_args.no_address_scope:
             body['address_scope_id'] = None
         elif parsed_args.address_scope:
-            _addrscope_id = neutronV20.find_resourceid_by_name_or_id(
-                self.get_client(), 'address_scope',
-                parsed_args.address_scope)
+            _addrscope_id = self.find_resourceid(parsed_args.address_scope,
+                                                 'address_scope')
             body['address_scope_id'] = _addrscope_id
         return {'subnetpool': body}

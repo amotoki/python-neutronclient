@@ -76,10 +76,8 @@ class CreateVip(neutronV20.CreateCommand):
             help=_('The subnet on which to allocate the vip address.'))
 
     def args2body(self, parsed_args):
-        _pool_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'pool', parsed_args.pool_id)
-        _subnet_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'subnet', parsed_args.subnet_id)
+        _pool_id = self.find_resourceid(parsed_args.pool_id, 'pool')
+        _subnet_id = self.find_resourceid(parsed_args.subnet_id, 'subnet')
 
         body = {'pool_id': _pool_id,
                 'admin_state_up': parsed_args.admin_state,

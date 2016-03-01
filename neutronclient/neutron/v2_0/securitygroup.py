@@ -346,8 +346,8 @@ class CreateSecurityGroupRule(neutronV20.CreateCommand):
             help=argparse.SUPPRESS)
 
     def args2body(self, parsed_args):
-        _security_group_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'security_group', parsed_args.security_group_id)
+        _security_group_id = self.find_resourceid(
+            parsed_args.security_group_id, 'security_group')
         body = {'security_group_id': _security_group_id,
                 'direction': parsed_args.direction,
                 'ethertype': parsed_args.ethertype or
@@ -356,9 +356,8 @@ class CreateSecurityGroupRule(neutronV20.CreateCommand):
                                ['protocol', 'port_range_min', 'port_range_max',
                                 'remote_ip_prefix', 'tenant_id'])
         if parsed_args.remote_group_id:
-            _remote_group_id = neutronV20.find_resourceid_by_name_or_id(
-                self.get_client(), 'security_group',
-                parsed_args.remote_group_id)
+            _remote_group_id = self.find_resourceid(
+                parsed_args.remote_group_id, 'security_group')
             body['remote_group_id'] = _remote_group_id
         return {'security_group_rule': body}
 

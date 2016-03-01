@@ -195,8 +195,7 @@ class CreateSubnet(neutronV20.CreateCommand):
             help=_('Prefix length for subnet allocation from subnetpool.'))
 
     def args2body(self, parsed_args):
-        _network_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'network', parsed_args.network_id)
+        _network_id = self.find_resourceid(parsed_args.network_id, 'network')
         body = {'network_id': _network_id}
 
         if parsed_args.prefixlen:

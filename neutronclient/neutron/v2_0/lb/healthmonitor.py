@@ -127,8 +127,7 @@ class AssociateHealthMonitor(neutronV20.NeutronCommand):
     def run(self, parsed_args):
         neutron_client = self.get_client()
         body = {'health_monitor': {'id': parsed_args.health_monitor_id}}
-        pool_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'pool', parsed_args.pool_id)
+        pool_id = self.find_resourceid(parsed_args.pool_id, 'pool')
         neutron_client.associate_health_monitor(pool_id, body)
         print((_('Associated health monitor '
                  '%s') % parsed_args.health_monitor_id),
@@ -152,8 +151,7 @@ class DisassociateHealthMonitor(neutronV20.NeutronCommand):
 
     def run(self, parsed_args):
         neutron_client = self.get_client()
-        pool_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'pool', parsed_args.pool_id)
+        pool_id = self.find_resourceid(parsed_args.pool_id, 'pool')
         neutron_client.disassociate_health_monitor(pool_id,
                                                    parsed_args
                                                    .health_monitor_id)

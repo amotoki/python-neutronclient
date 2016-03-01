@@ -40,23 +40,23 @@ def add_common_args(parser):
                'router insertion extension)'))
 
 
-def parse_common_args(client, parsed_args):
-    body = {}
-    if parsed_args.policy:
-        body['firewall_policy_id'] = neutronv20.find_resourceid_by_name_or_id(
-            client, 'firewall_policy',
-            parsed_args.policy)
+class CreateUpdateFirewallMixin(object):
 
-    if parsed_args.routers:
-        body['router_ids'] = [
-            neutronv20.find_resourceid_by_name_or_id(client, 'router', r)
-            for r in parsed_args.routers]
-    elif parsed_args.no_routers:
-        body['router_ids'] = []
+    def parse_common_args(self, parsed_args):
+        body = {}
+        if parsed_args.policy:
+            body['firewall_policy_id'] = self.find_resourceid(
+                parsed_args.policy, 'firewall_policy')
 
-    neutronv20.update_dict(parsed_args, body,
-                           ['name', 'description'])
-    return body
+        if parsed_args.routers:
+            body['router_ids'] = [self.find_resourceid(r, 'router')
+                                  for r in parsed_args.routers]
+        elif parsed_args.no_routers:
+            body['router_ids'] = []
+
+        neutronv20.update_dict(parsed_args, body,
+                               ['name', 'description'])
+        return body
 
 
 class ListFirewall(neutronv20.ListCommand):
@@ -75,7 +75,7 @@ class ShowFirewall(neutronv20.ShowCommand):
     resource = 'firewall'
 
 
-class CreateFirewall(neutronv20.CreateCommand):
+class CreateFirewall(neutronv20.CreateCommand, CreateUpdateFirewallMixin):
     """Create a firewall."""
 
     resource = 'firewall'
@@ -92,13 +92,13 @@ class CreateFirewall(neutronv20.CreateCommand):
             help=_('Set admin state up to false.'))
 
     def args2body(self, parsed_args):
-        body = parse_common_args(self.get_client(), parsed_args)
+        body = self.parse_common_args(self.get_client(), parsed_args)
         neutronv20.update_dict(parsed_args, body, ['tenant_id'])
         body['admin_state_up'] = parsed_args.admin_state
         return {self.resource: body}
 
 
-class UpdateFirewall(neutronv20.UpdateCommand):
+class UpdateFirewall(neutronv20.UpdateCommand, CreateUpdateFirewallMixin):
     """Update a given firewall."""
 
     resource = 'firewall'
@@ -114,7 +114,7 @@ class UpdateFirewall(neutronv20.UpdateCommand):
                    '(True means UP)'))
 
     def args2body(self, parsed_args):
-        body = parse_common_args(self.get_client(), parsed_args)
+        body = self.parse_common_args(self.get_client(), parsed_args)
         neutronv20.update_dict(parsed_args, body, ['admin_state_up'])
         return {self.resource: body}
 

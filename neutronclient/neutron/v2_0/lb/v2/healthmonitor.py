@@ -92,9 +92,7 @@ class CreateHealthMonitor(neutronV20.CreateCommand):
                    'monitor.'))
 
     def args2body(self, parsed_args):
-        pool_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'pool', parsed_args.pool,
-            cmd_resource='lbaas_pool')
+        pool_id = self.find_resourceid(parsed_args.pool, 'pool', 'lbaas_pool')
         body = {'admin_state_up': parsed_args.admin_state,
                 'delay': parsed_args.delay,
                 'max_retries': parsed_args.max_retries,

@@ -20,16 +20,14 @@ from neutronclient._i18n import _
 from neutronclient.neutron import v2_0 as neutronV20
 
 
-def _get_pool_id(client, pool_id_or_name):
-    return neutronV20.find_resourceid_by_name_or_id(client, 'pool',
-                                                    pool_id_or_name,
-                                                    cmd_resource='lbaas_pool')
-
-
 class LbaasMemberMixin(object):
 
+    def _get_pool_id(self, pool_id_or_name):
+        return self.find_resourceid(pool_id_or_name, 'pool',
+                                    cmd_resource='lbaas_pool')
+
     def set_extra_attrs(self, parsed_args):
-        self.parent_id = _get_pool_id(self.get_client(), parsed_args.pool)
+        self.parent_id = self._get_pool_id(parsed_args.pool)
 
     def add_known_arguments(self, parser):
         parser.add_argument(
@@ -50,7 +48,7 @@ class ListMember(LbaasMemberMixin, neutronV20.ListCommand):
     sorting_support = True
 
     def take_action(self, parsed_args):
-        self.parent_id = _get_pool_id(self.get_client(), parsed_args.pool)
+        self.parent_id = self._get_pool_id(parsed_args.pool)
         self.values_specs.append('--pool_id=%s' % self.parent_id)
         return super(ListMember, self).take_action(parsed_args)
 
@@ -97,9 +95,9 @@ class CreateMember(neutronV20.CreateCommand):
             help=_('ID or name of the pool that this member belongs to.'))
 
     def args2body(self, parsed_args):
-        self.parent_id = _get_pool_id(self.get_client(), parsed_args.pool)
-        _subnet_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'subnet', parsed_args.subnet)
+        self.parent_id = self.find_resourceid(parsed_args.pool, 'pool',
+                                              cmd_resource='lbaas_pool')
+        _subnet_id = self.find_resourceid(parsed_args.subnet, 'subnet')
         body = {'subnet_id': _subnet_id,
                 'admin_state_up': parsed_args.admin_state,
                 'protocol_port': parsed_args.protocol_port,
@@ -131,7 +129,8 @@ class UpdateMember(neutronV20.UpdateCommand):
             help=_('Updated name of the member.'))
 
     def args2body(self, parsed_args):
-        self.parent_id = _get_pool_id(self.get_client(), parsed_args.pool)
+        self.parent_id = self.find_resourceid(parsed_args.pool, 'pool',
+                                              cmd_resource='lbaas_pool')
         body = {}
         neutronV20.update_dict(parsed_args, body,
                                ['admin_state_up', 'weight', 'name'])

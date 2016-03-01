@@ -27,15 +27,6 @@ def _get_cmd_resource(obj_type):
     return resource, cmd_resource
 
 
-def get_rbac_obj_params(client, obj_type, obj_id_or_name):
-    resource, cmd_resource = _get_cmd_resource(obj_type)
-    obj_id = neutronV20.find_resourceid_by_name_or_id(
-        client=client, resource=resource, name_or_id=obj_id_or_name,
-        cmd_resource=cmd_resource)
-
-    return obj_id, cmd_resource
-
-
 class ListRBACPolicy(neutronV20.ListCommand):
     """List RBAC policies that belong to a given tenant."""
 
@@ -76,12 +67,16 @@ class CreateRBACPolicy(neutronV20.CreateCommand):
             required=True,
             help=_('Action for the RBAC policy.'))
 
+    def _get_rbac_obj_params(self, obj_type, obj_id_or_name):
+        resource, cmd_resource = _get_cmd_resource(obj_type)
+        obj_id = self.find_resourceid(obj_id_or_name, resource, cmd_resource)
+        return obj_id, cmd_resource
+
     def args2body(self, parsed_args):
         neutron_client = self.get_client()
         neutron_client.format = parsed_args.request_format
-        _object_id, _object_type = get_rbac_obj_params(neutron_client,
-                                                       parsed_args.type,
-                                                       parsed_args.name)
+        _object_id, _object_type = self._get_rbac_obj_params(parsed_args.type,
+                                                             parsed_args.name)
         body = {
             'object_id': _object_id,
             'object_type': _object_type,

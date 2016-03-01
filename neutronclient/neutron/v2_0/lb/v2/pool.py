@@ -88,8 +88,7 @@ class CreatePool(neutronV20.CreateCommand):
             help=_('Protocol for balancing.'))
 
     def args2body(self, parsed_args):
-        _listener_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'listener', parsed_args.listener)
+        _listener_id = self.find_resourceid(parsed_args.listener, 'listener')
         body = {'admin_state_up': parsed_args.admin_state,
                 'protocol': parsed_args.protocol,
                 'lb_algorithm': parsed_args.lb_algorithm,

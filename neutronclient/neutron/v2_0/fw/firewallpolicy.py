@@ -42,20 +42,21 @@ def add_common_args(parser):
                'names or IDs; e.g., --firewall-rules \"rule1 rule2\"'))
 
 
-def parse_common_args(client, parsed_args):
-    if parsed_args.firewall_rules:
-        _firewall_rules = []
-        for f in parsed_args.firewall_rules:
-            _firewall_rules.append(
-                neutronv20.find_resourceid_by_name_or_id(
-                    client, 'firewall_rule', f))
-        body = {'firewall_rules': _firewall_rules}
-    else:
-        body = {}
-    neutronv20.update_dict(parsed_args, body,
-                           ['name', 'description', 'shared',
-                            'audited', 'tenant_id'])
-    return {'firewall_policy': body}
+class CreateUpdateCommonMixin(object):
+
+    def parse_common_args(self, parsed_args):
+        if parsed_args.firewall_rules:
+            _firewall_rules = []
+            for f in parsed_args.firewall_rules:
+                _firewall_rules.append(
+                    self.find_resourceid(f, 'firewall_rule'))
+            body = {'firewall_rules': _firewall_rules}
+        else:
+            body = {}
+        neutronv20.update_dict(parsed_args, body,
+                               ['name', 'description', 'shared',
+                                'audited', 'tenant_id'])
+        return {'firewall_policy': body}
 
 
 class ListFirewallPolicy(neutronv20.ListCommand):
@@ -75,7 +76,7 @@ class ShowFirewallPolicy(neutronv20.ShowCommand):
     resource = 'firewall_policy'
 
 
-class CreateFirewallPolicy(neutronv20.CreateCommand):
+class CreateFirewallPolicy(neutronv20.CreateCommand, CreateUpdateCommonMixin):
     """Create a firewall policy."""
 
     resource = 'firewall_policy'
@@ -98,10 +99,10 @@ class CreateFirewallPolicy(neutronv20.CreateCommand):
         add_common_args(parser)
 
     def args2body(self, parsed_args):
-        return parse_common_args(self.get_client(), parsed_args)
+        return self.parse_common_args(parsed_args)
 
 
-class UpdateFirewallPolicy(neutronv20.UpdateCommand):
+class UpdateFirewallPolicy(neutronv20.UpdateCommand, CreateUpdateCommonMixin):
     """Update a given firewall policy."""
 
     resource = 'firewall_policy'
@@ -121,7 +122,7 @@ class UpdateFirewallPolicy(neutronv20.UpdateCommand):
                    '(True means auditing is enabled)'))
 
     def args2body(self, parsed_args):
-        return parse_common_args(self.get_client(), parsed_args)
+        return self.parse_common_args(parsed_args)
 
 
 class DeleteFirewallPolicy(neutronv20.DeleteCommand):
@@ -142,21 +143,18 @@ class FirewallPolicyInsertRule(neutronv20.UpdateCommand):
     def args2body(self, parsed_args):
         _rule = ''
         if parsed_args.firewall_rule_id:
-            _rule = neutronv20.find_resourceid_by_name_or_id(
-                self.get_client(), 'firewall_rule',
-                parsed_args.firewall_rule_id)
+            _rule = self.find_resourceid(parsed_args.firewall_rule_id,
+                                         'firewall_rule')
         _insert_before = ''
         if 'insert_before' in parsed_args:
             if parsed_args.insert_before:
-                _insert_before = neutronv20.find_resourceid_by_name_or_id(
-                    self.get_client(), 'firewall_rule',
-                    parsed_args.insert_before)
+                _insert_before = self.find_resourceid(
+                    parsed_args.insert_before, 'firewall_rule')
         _insert_after = ''
         if 'insert_after' in parsed_args:
             if parsed_args.insert_after:
-                _insert_after = neutronv20.find_resourceid_by_name_or_id(
-                    self.get_client(), 'firewall_rule',
-                    parsed_args.insert_after)
+                _insert_after = self.find_resourceid(
+                    parsed_args.insert_after, 'firewall_rule')
         body = {'firewall_rule_id': _rule,
                 'insert_before': _insert_before,
                 'insert_after': _insert_after}
@@ -182,9 +180,7 @@ class FirewallPolicyInsertRule(neutronv20.UpdateCommand):
     def run(self, parsed_args):
         neutron_client = self.get_client()
         body = self.args2body(parsed_args)
-        _id = neutronv20.find_resourceid_by_name_or_id(neutron_client,
-                                                       self.resource,
-                                                       parsed_args.id)
+        _id = self.find_resourceid(parsed_args.id)
         self.call_api(neutron_client, _id, body)
         print((_('Inserted firewall rule in firewall policy %(id)s') %
                {'id': parsed_args.id}), file=self.app.stdout)
@@ -202,9 +198,8 @@ class FirewallPolicyRemoveRule(neutronv20.UpdateCommand):
     def args2body(self, parsed_args):
         _rule = ''
         if parsed_args.firewall_rule_id:
-            _rule = neutronv20.find_resourceid_by_name_or_id(
-                self.get_client(), 'firewall_rule',
-                parsed_args.firewall_rule_id)
+            _rule = self.find_resourceid(parsed_args.firewall_rule_id,
+                                         'firewall_rule')
         body = {'firewall_rule_id': _rule}
         return body
 
@@ -220,9 +215,7 @@ class FirewallPolicyRemoveRule(neutronv20.UpdateCommand):
     def run(self, parsed_args):
         neutron_client = self.get_client()
         body = self.args2body(parsed_args)
-        _id = neutronv20.find_resourceid_by_name_or_id(neutron_client,
-                                                       self.resource,
-                                                       parsed_args.id)
+        _id = self.find_resourceid(parsed_args.id)
         self.call_api(neutron_client, _id, body)
         print((_('Removed firewall rule from firewall policy %(id)s') %
                {'id': parsed_args.id}), file=self.app.stdout)

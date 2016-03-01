@@ -100,9 +100,7 @@ class CreateMeteringLabelRule(neutronv20.CreateCommand):
             help=_('Exclude this CIDR from the label, default: not excluded.'))
 
     def args2body(self, parsed_args):
-        neutron_client = self.get_client()
-        label_id = neutronv20.find_resourceid_by_name_or_id(
-            neutron_client, 'metering_label', parsed_args.label_id)
+        label_id = self.find_resourceid(parsed_args.label_id, 'metering_label')
 
         body = {'metering_label_id': label_id,
                 'remote_ip_prefix': parsed_args.remote_ip_prefix}

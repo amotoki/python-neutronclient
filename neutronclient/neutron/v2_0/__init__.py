@@ -454,6 +454,54 @@ class NeutronCommand(command.Command):
     def args2body(self, parsed_args):
         return {}
 
+    def find_resource(self, name_or_id,
+                      resource=None, cmd_resource=None, parent_id=None,
+                      project_id=None, allow_names=None, fields=None):
+        """Find resource with specified ID or name.
+
+        :param name_or_id: ID or name to be looked up for.
+        :param resource: Resource type for look up.
+            If unspecified, self.resource is used.
+        :param cmd_resource: Resource type used to find client method.
+            If unspecified, self.cmd_resource is used.
+            When you need to pass this argument and shadow_resource is
+            defined for a target resource, you need to pass shadow_resource.
+        :param parent_id: ID of parent resource.
+            If unspecified, self.parent_id is used.
+        :param project_id: Look for a resource only from a given project.
+        :param allow_names: Look up for 'name' or not.
+            If unspecified, when a specified resource is different from
+            self.resource, it defaults to True. Otherwise, self.allow_names
+            is used (True if self.allow_names is undefined).
+        :param fields: Fields to be fetched. By default, all fields of
+            a target resource will be fetched.
+        """
+        if allow_names is None:
+            if resource and resource != self.resource:
+                allow_names = True
+            else:
+                allow_names = getattr(self, 'allow_names', True)
+        if resource and not cmd_resource:
+            cmd_resource = resource
+        if allow_names:
+            return find_resource_by_name_or_id(
+                self.get_client(), resource or self.resource, name_or_id,
+                project_id,
+                cmd_resource or self.cmd_resource,
+                parent_id or self.parent_id, fields)
+        else:
+            return find_resource_by_id(
+                self.get_client(), resource or self.resource, name_or_id,
+                cmd_resource or self.cmd_resource,
+                parent_id or self.parent_id, fields)
+
+    def find_resourceid(self, name_or_id,
+                        resource=None, cmd_resource=None, parent_id=None,
+                        project_id=None, allow_names=None):
+        return self.find_resource(name_or_id, resource, cmd_resource,
+                                  parent_id, project_id, allow_names,
+                                  fields='id')['id']
+
 
 class CreateCommand(NeutronCommand, show.ShowOne):
     """Create a resource for a given tenant."""
@@ -533,14 +581,7 @@ class UpdateCommand(NeutronCommand):
             raise exceptions.CommandError(
                 _("Must specify new values to update %s") %
                 self.cmd_resource)
-        if self.allow_names:
-            _id = find_resourceid_by_name_or_id(
-                neutron_client, self.resource, parsed_args.id,
-                cmd_resource=self.cmd_resource, parent_id=self.parent_id)
-        else:
-            _id = find_resourceid_by_id(
-                neutron_client, self.resource, parsed_args.id,
-                self.cmd_resource, self.parent_id)
+        _id = self.find_resourceid(parsed_args.id)
         obj_updater = getattr(neutron_client,
                               "update_%s" % self.cmd_resource)
         if self.parent_id:
@@ -581,12 +622,7 @@ class DeleteCommand(NeutronCommand):
         obj_deleter = getattr(neutron_client,
                               "delete_%s" % self.cmd_resource)
         if self.allow_names:
-            params = {'cmd_resource': self.cmd_resource,
-                      'parent_id': self.parent_id}
-            _id = find_resourceid_by_name_or_id(neutron_client,
-                                                self.resource,
-                                                parsed_args.id,
-                                                **params)
+            _id = self.find_resourceid(parsed_args.id)
         else:
             _id = parsed_args.id
 
@@ -804,11 +840,7 @@ class ShowCommand(NeutronCommand, show.ShowOne):
         if parsed_args.fields:
             params = {'fields': parsed_args.fields}
         if self.allow_names:
-            _id = find_resourceid_by_name_or_id(neutron_client,
-                                                self.resource,
-                                                parsed_args.id,
-                                                cmd_resource=self.cmd_resource,
-                                                parent_id=self.parent_id)
+            _id = self.find_resourceid(parsed_args.id)
         else:
             _id = parsed_args.id
 

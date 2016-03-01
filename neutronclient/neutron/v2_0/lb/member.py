@@ -63,8 +63,7 @@ class CreateMember(neutronV20.CreateCommand):
             help=_('Pool ID or name this vip belongs to.'))
 
     def args2body(self, parsed_args):
-        _pool_id = neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'pool', parsed_args.pool_id)
+        _pool_id = self.find_resourceid(parsed_args.pool_id, 'pool')
         body = {'pool_id': _pool_id,
                 'admin_state_up': parsed_args.admin_state}
         neutronV20.update_dict(

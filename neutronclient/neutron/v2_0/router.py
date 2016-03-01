@@ -174,11 +174,8 @@ class RouterInterfaceCommand(neutronV20.NeutronCommand):
             resource = 'subnet'
             value = parsed_args.interface
 
-        _router_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, self.resource, parsed_args.router)
-
-        _interface_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, resource, value)
+        _router_id = self.find_resourceid(parsed_args.router)
+        _interface_id = self.find_resourceid(value, resource)
         body = {'%s_id' % resource: _interface_id}
 
         portinfo = self.call_api(neutron_client, _router_id, body)
@@ -239,10 +236,9 @@ class SetGatewayRouter(neutronV20.NeutronCommand):
     def run(self, parsed_args):
         self.log.debug('run(%s)' % parsed_args)
         neutron_client = self.get_client()
-        _router_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, self.resource, parsed_args.router)
-        _ext_net_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'network', parsed_args.external_network)
+        _router_id = self.find_resourceid(parsed_args.router)
+        _ext_net_id = self.find_resourceid(parsed_args.external_network,
+                                           'network')
         router_dict = {'network_id': _ext_net_id}
         if parsed_args.disable_snat:
             router_dict['enable_snat'] = False
@@ -251,8 +247,7 @@ class SetGatewayRouter(neutronV20.NeutronCommand):
             for ip_spec in parsed_args.fixed_ip:
                 subnet_name_id = ip_spec.get('subnet_id')
                 if subnet_name_id:
-                    subnet_id = neutronV20.find_resourceid_by_name_or_id(
-                        neutron_client, 'subnet', subnet_name_id)
+                    subnet_id = self.find_resourceid(subnet_name_id, 'subnet')
                     ip_spec['subnet_id'] = subnet_id
                 ips.append(ip_spec)
             router_dict['external_fixed_ips'] = ips
@@ -276,8 +271,7 @@ class RemoveGatewayRouter(neutronV20.NeutronCommand):
     def run(self, parsed_args):
         self.log.debug('run(%s)' % parsed_args)
         neutron_client = self.get_client()
-        _router_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, self.resource, parsed_args.router)
+        _router_id = self.find_resourceid(parsed_args.router)
         neutron_client.remove_gateway_router(_router_id)
         print(_('Removed gateway from router %s') % parsed_args.router,
               file=self.app.stdout)

@@ -20,12 +20,6 @@ from neutronclient._i18n import _
 from neutronclient.neutron import v2_0 as neutronv20
 
 
-def get_qos_policy_id(client, policy_id_or_name):
-    _policy_id = neutronv20.find_resourceid_by_name_or_id(
-        client, 'policy', policy_id_or_name, cmd_resource='qos_policy')
-    return _policy_id
-
-
 class CreateQosPolicyMixin(object):
     def add_arguments_qos_policy(self, parser):
         qos_policy_args = parser.add_mutually_exclusive_group()
@@ -36,8 +30,8 @@ class CreateQosPolicyMixin(object):
 
     def args2body_qos_policy(self, parsed_args, resource):
         if parsed_args.qos_policy:
-            _policy_id = get_qos_policy_id(self.get_client(),
-                                           parsed_args.qos_policy)
+            _policy_id = self.find_resourceid(
+                parsed_args.qos_policy, 'policy', cmd_resource='qos_policy')
             resource['qos_policy_id'] = _policy_id
 
 

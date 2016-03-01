@@ -69,20 +69,21 @@ def _add_updatable_args(parser):
         help=argparse.SUPPRESS)
 
 
-def _updatable_args2body(parsed_args, body, client):
-    neutronV20.update_dict(parsed_args, body,
-                           ['device_id', 'device_owner', 'name'])
-    ips = []
-    if parsed_args.fixed_ip:
-        for ip_spec in parsed_args.fixed_ip:
-            if 'subnet_id' in ip_spec:
-                subnet_name_id = ip_spec['subnet_id']
-                _subnet_id = neutronV20.find_resourceid_by_name_or_id(
-                    client, 'subnet', subnet_name_id)
-                ip_spec['subnet_id'] = _subnet_id
-            ips.append(ip_spec)
-    if ips:
-        body['fixed_ips'] = ips
+class CreateUpdatePortMixin(object):
+
+    def _updatable_args2body(self, parsed_args, body):
+        neutronV20.update_dict(parsed_args, body,
+                               ['device_id', 'device_owner', 'name'])
+        ips = []
+        if parsed_args.fixed_ip:
+            for ip_spec in parsed_args.fixed_ip:
+                if 'subnet_id' in ip_spec:
+                    subnet_name_id = ip_spec['subnet_id']
+                    _subnet_id = self.find_resourceid(subnet_name_id, 'subnet')
+                    ip_spec['subnet_id'] = _subnet_id
+                ips.append(ip_spec)
+        if ips:
+            body['fixed_ips'] = ips
 
 
 class ListPort(neutronV20.ListCommand):
@@ -113,9 +114,7 @@ class ListRouterPort(neutronV20.ListCommand):
         return parser
 
     def take_action(self, parsed_args):
-        neutron_client = self.get_client()
-        _id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'router', parsed_args.id)
+        _id = self.find_resourceid(parsed_args.id, 'router')
         self.values_specs.append('--device_id=%s' % _id)
         return super(ListRouterPort, self).take_action(parsed_args)
 
@@ -140,8 +139,7 @@ class UpdatePortSecGroupMixin(object):
             help=_('Associate no security groups with the port.'))
 
     def _resolv_sgid(self, secgroup):
-        return neutronV20.find_resourceid_by_name_or_id(
-            self.get_client(), 'security_group', secgroup)
+        return self.find_resourceid(secgroup, 'security_group')
 
     def args2body_secgroup(self, parsed_args, port):
         if parsed_args.security_groups:
@@ -220,7 +218,8 @@ class UpdatePortAllowedAddressPair(object):
             port['allowed_address_pairs'] = []
 
 
-class CreatePort(neutronV20.CreateCommand, UpdatePortSecGroupMixin,
+class CreatePort(neutronV20.CreateCommand, CreateUpdatePortMixin,
+                 UpdatePortSecGroupMixin,
                  UpdateExtraDhcpOptMixin, qos_policy.CreateQosPolicyMixin,
                  UpdatePortAllowedAddressPair):
     """Create a port for a given tenant."""
@@ -272,12 +271,10 @@ class CreatePort(neutronV20.CreateCommand, UpdatePortSecGroupMixin,
         dns.add_dns_argument_create(parser, self.resource, 'name')
 
     def args2body(self, parsed_args):
-        client = self.get_client()
-        _network_id = neutronV20.find_resourceid_by_name_or_id(
-            client, 'network', parsed_args.network_id)
+        _network_id = self.find_resourceid(parsed_args.network_id, 'network')
         body = {'admin_state_up': parsed_args.admin_state,
                 'network_id': _network_id, }
-        _updatable_args2body(parsed_args, body, client)
+        self._updatable_args2body(parsed_args, body)
         neutronV20.update_dict(parsed_args, body,
                                ['mac_address', 'tenant_id'])
         if parsed_args.vnic_type:
@@ -301,7 +298,8 @@ class DeletePort(neutronV20.DeleteCommand):
     resource = 'port'
 
 
-class UpdatePort(neutronV20.UpdateCommand, UpdatePortSecGroupMixin,
+class UpdatePort(neutronV20.UpdateCommand, CreateUpdatePortMixin,
+                 UpdatePortSecGroupMixin,
                  UpdateExtraDhcpOptMixin, qos_policy.UpdateQosPolicyMixin,
                  UpdatePortAllowedAddressPair):
     """Update port's information."""
@@ -326,8 +324,7 @@ class UpdatePort(neutronV20.UpdateCommand, UpdatePortSecGroupMixin,
 
     def args2body(self, parsed_args):
         body = {}
-        client = self.get_client()
-        _updatable_args2body(parsed_args, body, client)
+        self._updatable_args2body(parsed_args, body)
         if parsed_args.admin_state_up:
             body['admin_state_up'] = parsed_args.admin_state_up
 

@@ -20,14 +20,6 @@ from neutronclient.common import utils
 from neutronclient.neutron import v2_0 as neutronV20
 
 
-def _get_loadbalancer_id(client, lb_id_or_name):
-    return neutronV20.find_resourceid_by_name_or_id(
-        client,
-        'loadbalancer',
-        lb_id_or_name,
-        cmd_resource='lbaas_loadbalancer')
-
-
 class ListListener(neutronV20.ListCommand):
     """LBaaS v2 List listeners that belong to a given tenant."""
 
@@ -94,9 +86,9 @@ class CreateListener(neutronV20.CreateCommand):
 
     def args2body(self, parsed_args):
         if parsed_args.loadbalancer:
-            parsed_args.loadbalancer = _get_loadbalancer_id(
-                self.get_client(),
-                parsed_args.loadbalancer)
+            parsed_args.loadbalancer = self.find_resourceid(
+                parsed_args.loadbalancer, 'loadbalancer',
+                cmd_resource='lbaas_loadbalancer')
         body = {'loadbalancer_id': parsed_args.loadbalancer,
                 'protocol': parsed_args.protocol,
                 'protocol_port': parsed_args.protocol_port,

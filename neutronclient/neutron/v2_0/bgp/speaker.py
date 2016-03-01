@@ -20,23 +20,10 @@ from neutronclient._i18n import _
 from neutronclient.common import utils
 from neutronclient.common import validators
 from neutronclient.neutron import v2_0 as neutronv20
-from neutronclient.neutron.v2_0.bgp import peer as bgp_peer
 
 # Allowed BGP Autonomous number range
 MIN_AS_NUM = 1
 MAX_AS_NUM = 65535
-
-
-def get_network_id(client, id_or_name):
-    return neutronv20.find_resourceid_by_name_or_id(client,
-                                                    'network',
-                                                    id_or_name)
-
-
-def get_bgp_speaker_id(client, id_or_name):
-    return neutronv20.find_resourceid_by_name_or_id(client,
-                                                    'bgp_speaker',
-                                                    id_or_name)
 
 
 def validate_speaker_attributes(parsed_args):
@@ -155,10 +142,9 @@ class AddPeerToSpeaker(neutronv20.NeutronCommand):
 
     def run(self, parsed_args):
         neutron_client = self.get_client()
-        _speaker_id = get_bgp_speaker_id(neutron_client,
-                                         parsed_args.bgp_speaker)
-        _peer_id = bgp_peer.get_bgp_peer_id(neutron_client,
-                                            parsed_args.bgp_peer)
+        _speaker_id = self.find_resourceid(parsed_args.bgp_speaker,
+                                           'bgp_speaker')
+        _peer_id = self.find_resourceid(parsed_args.bgp_peer, 'bgp_peer')
         neutron_client.add_peer_to_bgp_speaker(_speaker_id,
                                                {'bgp_peer_id': _peer_id})
         print(_('Added BGP peer %(peer)s to BGP speaker %(speaker)s.') %
@@ -184,10 +170,9 @@ class RemovePeerFromSpeaker(neutronv20.NeutronCommand):
 
     def run(self, parsed_args):
         neutron_client = self.get_client()
-        _speaker_id = get_bgp_speaker_id(neutron_client,
-                                         parsed_args.bgp_speaker)
-        _peer_id = bgp_peer.get_bgp_peer_id(neutron_client,
-                                            parsed_args.bgp_peer)
+        _speaker_id = self.find_resourceid(parsed_args.bgp_speaker,
+                                           'bgp_speaker')
+        _peer_id = self.find_resourceid(parsed_args.bgp_peer, 'bgp_peer')
         neutron_client.remove_peer_from_bgp_speaker(_speaker_id,
                                                     {'bgp_peer_id': _peer_id})
         print(_('Removed BGP peer %(peer)s from BGP speaker %(speaker)s.') %
@@ -213,10 +198,9 @@ class AddNetworkToSpeaker(neutronv20.NeutronCommand):
 
     def run(self, parsed_args):
         neutron_client = self.get_client()
-        _speaker_id = get_bgp_speaker_id(neutron_client,
-                                         parsed_args.bgp_speaker)
-        _net_id = get_network_id(neutron_client,
-                                 parsed_args.network)
+        _speaker_id = self.find_resourceid(parsed_args.bgp_speaker,
+                                           'bgp_speaker')
+        _net_id = self.find_resourceid(parsed_args.network, 'network')
         neutron_client.add_network_to_bgp_speaker(_speaker_id,
                                                   {'network_id': _net_id})
         print(_('Added network %(net)s to BGP speaker %(speaker)s.') %
@@ -241,10 +225,9 @@ class RemoveNetworkFromSpeaker(neutronv20.NeutronCommand):
 
     def run(self, parsed_args):
         neutron_client = self.get_client()
-        _speaker_id = get_bgp_speaker_id(neutron_client,
-                                         parsed_args.bgp_speaker)
-        _net_id = get_network_id(neutron_client,
-                                 parsed_args.network)
+        _speaker_id = self.find_resourceid(parsed_args.bgp_speaker,
+                                           'bgp_speaker')
+        _net_id = self.find_resourceid(parsed_args.network, 'network')
         neutron_client.remove_network_from_bgp_speaker(_speaker_id,
                                                        {'network_id': _net_id})
         print(_('Removed network %(net)s from BGP speaker %(speaker)s.') %
@@ -270,8 +253,8 @@ class ListRoutesAdvertisedBySpeaker(neutronv20.ListCommand):
         return parser
 
     def call_server(self, neutron_client, search_opts, parsed_args):
-        _speaker_id = get_bgp_speaker_id(neutron_client,
-                                         parsed_args.bgp_speaker)
+        _speaker_id = self.find_resourceid(parsed_args.bgp_speaker,
+                                           'bgp_speaker')
         data = neutron_client.list_route_advertised_from_bgp_speaker(
             _speaker_id, **search_opts)
         return data

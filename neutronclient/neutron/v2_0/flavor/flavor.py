@@ -120,10 +120,9 @@ class AssociateFlavor(neutronV20.NeutronCommand):
 
     def run(self, parsed_args):
         neutron_client = self.get_client()
-        flavor_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'flavor', parsed_args.flavor)
-        service_profile_id = neutronV20.find_resourceid_by_id(
-            neutron_client, 'service_profile', parsed_args.flavor_profile)
+        flavor_id = self.find_resourceid(parsed_args.flavor)
+        service_profile_id = self.find_resourceid(parsed_args.flavor_profile,
+                                                  'service_profile')
         body = {'service_profile': {'id': service_profile_id}}
         neutron_client.associate_flavor(flavor_id, body)
         print((_('Associated flavor %(flavor)s with '
@@ -153,10 +152,9 @@ class DisassociateFlavor(neutronV20.NeutronCommand):
 
     def run(self, parsed_args):
         neutron_client = self.get_client()
-        flavor_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'flavor', parsed_args.flavor)
-        service_profile_id = neutronV20.find_resourceid_by_id(
-            neutron_client, 'service_profile', parsed_args.flavor_profile)
+        flavor_id = self.find_resourceid(parsed_args.flavor)
+        service_profile_id = self.find_resourceid(parsed_args.flavor_profile,
+                                                  'service_profile')
         neutron_client.disassociate_flavor(flavor_id, service_profile_id)
         print((_('Disassociated flavor %(flavor)s from '
                  'flavor_profile %(profile)s') %

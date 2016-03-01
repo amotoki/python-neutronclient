@@ -224,10 +224,8 @@ class NetworkGatewayInterfaceCommand(neutronV20.NeutronCommand):
         return parser
 
     def retrieve_ids(self, client, args):
-        gateway_id = neutronV20.find_resourceid_by_name_or_id(
-            client, self.resource, args.net_gateway_id)
-        network_id = neutronV20.find_resourceid_by_name_or_id(
-            client, 'network', args.network_id)
+        gateway_id = self.find_resourceid(args.net_gateway_id)
+        network_id = self.find_resourceid(args.network_id, 'network')
         return (gateway_id, network_id)
 
 

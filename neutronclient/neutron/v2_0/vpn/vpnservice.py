@@ -62,13 +62,10 @@ class CreateVPNService(neutronv20.CreateCommand):
 
     def args2body(self, parsed_args):
         if parsed_args.subnet:
-            _subnet_id = neutronv20.find_resourceid_by_name_or_id(
-                self.get_client(), 'subnet', parsed_args.subnet)
+            _subnet_id = self.find_resourceid(parsed_args.subnet, 'subnet')
         else:
             _subnet_id = None
-        _router_id = neutronv20.find_resourceid_by_name_or_id(
-            self.get_client(), 'router',
-            parsed_args.router)
+        _router_id = self.find_resourceid(parsed_args.router, 'router')
 
         body = {'subnet_id': _subnet_id,
                 'router_id': _router_id,

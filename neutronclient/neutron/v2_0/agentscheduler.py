@@ -43,8 +43,7 @@ class AddNetworkToDhcpAgent(neutronV20.NeutronCommand):
     def run(self, parsed_args):
         self.log.debug('run(%s)' % parsed_args)
         neutron_client = self.get_client()
-        _net_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'network', parsed_args.network)
+        _net_id = self.find_resourceid(parsed_args.network, 'network')
         neutron_client.add_network_to_dhcp_agent(parsed_args.dhcp_agent,
                                                  {'network_id': _net_id})
         print(_('Added network %s to DHCP agent') % parsed_args.network,
@@ -69,8 +68,7 @@ class RemoveNetworkFromDhcpAgent(neutronV20.NeutronCommand):
     def run(self, parsed_args):
         self.log.debug('run(%s)' % parsed_args)
         neutron_client = self.get_client()
-        _net_id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'network', parsed_args.network)
+        _net_id = self.find_resourceid(parsed_args.network, 'network')
         neutron_client.remove_network_from_dhcp_agent(
             parsed_args.dhcp_agent, _net_id)
         print(_('Removed network %s from DHCP agent') % parsed_args.network,
@@ -119,9 +117,7 @@ class ListDhcpAgentsHostingNetwork(neutronV20.ListCommand):
             agent['alive'] = ":-)" if agent['alive'] else 'xxx'
 
     def call_server(self, neutron_client, search_opts, parsed_args):
-        _id = neutronV20.find_resourceid_by_name_or_id(neutron_client,
-                                                       'network',
-                                                       parsed_args.network)
+        _id = self.find_resourceid(parsed_args.network, 'network')
         search_opts['network'] = _id
         data = neutron_client.list_dhcp_agent_hosting_networks(**search_opts)
         return data
@@ -145,8 +141,7 @@ class AddRouterToL3Agent(neutronV20.NeutronCommand):
     def run(self, parsed_args):
         self.log.debug('run(%s)' % parsed_args)
         neutron_client = self.get_client()
-        _id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'router', parsed_args.router)
+        _id = self.find_resourceid(parsed_args.router, 'router')
         neutron_client.add_router_to_l3_agent(parsed_args.l3_agent,
                                               {'router_id': _id})
         print(_('Added router %s to L3 agent') % parsed_args.router,
@@ -171,8 +166,7 @@ class RemoveRouterFromL3Agent(neutronV20.NeutronCommand):
     def run(self, parsed_args):
         self.log.debug('run(%s)' % parsed_args)
         neutron_client = self.get_client()
-        _id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'router', parsed_args.router)
+        _id = self.find_resourceid(parsed_args.router, 'router')
         neutron_client.remove_router_from_l3_agent(
             parsed_args.l3_agent, _id)
         print(_('Removed router %s from L3 agent') % parsed_args.router,
@@ -228,9 +222,7 @@ class ListL3AgentsHostingRouter(neutronV20.ListCommand):
             agent['alive'] = ":-)" if agent['alive'] else 'xxx'
 
     def call_server(self, neutron_client, search_opts, parsed_args):
-        _id = neutronV20.find_resourceid_by_name_or_id(neutron_client,
-                                                       'router',
-                                                       parsed_args.router)
+        _id = self.find_resourceid(parsed_args.router, 'router')
         search_opts['router'] = _id
         data = neutron_client.list_l3_agent_hosting_routers(**search_opts)
         return data
@@ -282,9 +274,7 @@ class GetLbaasAgentHostingPool(neutronV20.ListCommand):
             agent['alive'] = ":-)" if agent['alive'] else 'xxx'
 
     def call_server(self, neutron_client, search_opts, parsed_args):
-        _id = neutronV20.find_resourceid_by_name_or_id(neutron_client,
-                                                       'pool',
-                                                       parsed_args.pool)
+        _id = self.find_resourceid(parsed_args.pool, 'pool')
         search_opts['pool'] = _id
         agent = neutron_client.get_lbaas_agent_hosting_pool(**search_opts)
         data = {'agents': [agent['agent']]}
@@ -337,8 +327,7 @@ class GetLbaasAgentHostingLoadBalancer(neutronV20.ListCommand):
             agent['alive'] = ":-)" if agent['alive'] else 'xxx'
 
     def call_server(self, neutron_client, search_opts, parsed_args):
-        _id = neutronV20.find_resourceid_by_name_or_id(
-            neutron_client, 'loadbalancer', parsed_args.loadbalancer)
+        _id = self.find_resourceid(parsed_args.loadbalancer, 'loadbalancer')
         search_opts['loadbalancer'] = _id
         agent = neutron_client.get_lbaas_agent_hosting_loadbalancer(
             **search_opts)
